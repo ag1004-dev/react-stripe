@@ -6,10 +6,7 @@ import React from 'react';
 
 import PropTypes from 'prop-types';
 
-import {
-  useElementsContextWithUseCase,
-  useCartElementContextWithUseCase,
-} from './Elements';
+import {useCartElementContextWithUseCase} from './Elements';
 import {useAttachEvent} from '../utils/useAttachEvent';
 import {ElementProps} from '../types';
 import {usePrevious} from '../utils/usePrevious';
@@ -17,6 +14,7 @@ import {
   extractAllowedOptionsUpdates,
   UnknownOptions,
 } from '../utils/extractAllowedOptionsUpdates';
+import {useElementsOrCustomCheckoutSdkContextWithUseCase} from './CustomCheckout';
 
 type UnknownCallback = (...args: unknown[]) => any;
 
@@ -50,7 +48,12 @@ const createElementComponent = (
     options = {},
 
   }) => {
-    const {elements} = useElementsContextWithUseCase(`mounts <${displayName}>`);
+    const ctx = useElementsOrCustomCheckoutSdkContextWithUseCase(
+      `mounts <${displayName}>`
+    );
+    const elements = 'elements' in ctx ? ctx.elements : null;
+    const customCheckoutSdk =
+      'customCheckoutSdk' in ctx ? ctx.customCheckoutSdk : null;
     const [element, setElement] = React.useState<stripeJs.StripeElement | null>(
       null
     );
@@ -58,8 +61,8 @@ const createElementComponent = (
     const domNode = React.useRef<HTMLDivElement | null>(null);
 
 
-      }
-    }, [elements, options, setCart]);
+    
+    }, [elements, customCheckoutSdk, options, setCart]);
 
     const prevOptions = usePrevious(options);
     React.useEffect(() => {
@@ -98,8 +101,14 @@ const createElementComponent = (
   // Only render the Element wrapper in a server environment.
   const ServerElement: FunctionComponent<PrivateElementProps> = (props) => {
     // Validate that we are in the right context by calling useElementsContextWithUseCase.
-    useElementsContextWithUseCase(`mounts <${displayName}>`);
-    useCartElementContextWithUseCase(`mounts <${displayName}>`);
+    const ctx = useElementsOrCustomCheckoutSdkContextWithUseCase(
+      `mounts <${displayName}>`
+    );
+
+    useCartElementContextWithUseCase(
+      `mounts <${displayName}>`,
+      'customCheckoutSdk' in ctx
+    );
     const {id, className} = props;
     return <div id={id} className={className} />;
   };

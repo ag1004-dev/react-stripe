@@ -21,19 +21,25 @@ import {
   AfterpayClearpayMessageElementComponent,
   PaymentMethodMessagingElementComponent,
 } from './types';
+import {isServer} from './utils/isServer';
 
 export * from './types';
 
 export {
-  useElements,
   useStripe,
+  useElements,
   useCartElement,
   useCartElementState,
   Elements,
   ElementsConsumer,
 } from './components/Elements';
 
-const isServer = typeof window === 'undefined';
+export {
+  useCustomCheckout,
+  CustomCheckoutProvider,
+} from './components/CustomCheckout';
+export {EmbeddedCheckout} from './components/EmbeddedCheckout';
+export {EmbeddedCheckoutProvider} from './components/EmbeddedCheckoutProvider';
 
 /**
  * Requires beta access:
@@ -124,9 +130,6 @@ export const PaymentElement: PaymentElementComponent = createElementComponent(
 );
 
 /**
- * Requires beta access:
- * Contact [Stripe support](https://support.stripe.com/) for more information.
- *
  * @docs https://stripe.com/docs/stripe-js/react#element-components
  */
 export const ExpressCheckoutElement: ExpressCheckoutElementComponent = createElementComponent(
@@ -143,9 +146,6 @@ export const PaymentRequestButtonElement: PaymentRequestButtonElementComponent =
 );
 
 /**
- * Requires beta access:
- * Contact [Stripe support](https://support.stripe.com/) for more information.
- *
  * @docs https://stripe.com/docs/stripe-js/react#element-components
  */
 export const LinkAuthenticationElement: LinkAuthenticationElementComponent = createElementComponent(
