@@ -30,12 +30,7 @@ interface PrivateElementProps {
   onLoadError?: UnknownCallback;
   onLoaderStart?: UnknownCallback;
   onNetworksChange?: UnknownCallback;
-  onCheckout?: UnknownCallback;
-  onLineItemClick?: UnknownCallback;
-  onConfirm?: UnknownCallback;
-  onCancel?: UnknownCallback;
-  onShippingAddressChange?: UnknownCallback;
-  onShippingRateChange?: UnknownCallback;
+
   options?: UnknownOptions;
 }
 
@@ -51,21 +46,7 @@ const createElementComponent = (
     id,
     className,
     options = {},
-    onBlur,
-    onFocus,
-    onReady,
-    onChange,
-    onEscape,
-    onClick,
-    onLoadError,
-    onLoaderStart,
-    onNetworksChange,
-    onCheckout,
-    onLineItemClick,
-    onConfirm,
-    onCancel,
-    onShippingAddressChange,
-    onShippingRateChange,
+
   }) => {
     const ctx = useElementsOrCustomCheckoutSdkContextWithUseCase(
       `mounts <${displayName}>`
@@ -79,97 +60,8 @@ const createElementComponent = (
     const elementRef = React.useRef<stripeJs.StripeElement | null>(null);
     const domNode = React.useRef<HTMLDivElement | null>(null);
 
-    const {setCart, setCartState} = useCartElementContextWithUseCase(
-      `mounts <${displayName}>`,
-      'customCheckoutSdk' in ctx
-    );
 
-    // For every event where the merchant provides a callback, call element.on
-    // with that callback. If the merchant ever changes the callback, removes
-    // the old callback with element.off and then call element.on with the new one.
-    useAttachEvent(element, 'blur', onBlur);
-    useAttachEvent(element, 'focus', onFocus);
-    useAttachEvent(element, 'escape', onEscape);
-    useAttachEvent(element, 'click', onClick);
-    useAttachEvent(element, 'loaderror', onLoadError);
-    useAttachEvent(element, 'loaderstart', onLoaderStart);
-    useAttachEvent(element, 'networkschange', onNetworksChange);
-    useAttachEvent(element, 'lineitemclick', onLineItemClick);
-    useAttachEvent(element, 'confirm', onConfirm);
-    useAttachEvent(element, 'cancel', onCancel);
-    useAttachEvent(element, 'shippingaddresschange', onShippingAddressChange);
-    useAttachEvent(element, 'shippingratechange', onShippingRateChange);
-
-    let readyCallback: UnknownCallback | undefined;
-    if (type === 'cart') {
-      readyCallback = (event) => {
-        setCartState(
-          (event as unknown) as stripeJs.StripeCartElementPayloadEvent
-        );
-        onReady && onReady(event);
-      };
-    } else if (onReady) {
-      if (type === 'expressCheckout') {
-        // Passes through the event, which includes visible PM types
-        readyCallback = onReady;
-      } else {
-        // For other Elements, pass through the Element itself.
-        readyCallback = () => {
-          onReady(element);
-        };
-      }
-    }
-
-    useAttachEvent(element, 'ready', readyCallback);
-
-    const changeCallback =
-      type === 'cart'
-        ? (event: stripeJs.StripeCartElementPayloadEvent) => {
-            setCartState(event);
-            onChange && onChange(event);
-          }
-        : onChange;
-
-    useAttachEvent(element, 'change', changeCallback);
-
-    const checkoutCallback =
-      type === 'cart'
-        ? (event: stripeJs.StripeCartElementPayloadEvent) => {
-            setCartState(event);
-            onCheckout && onCheckout(event);
-          }
-        : onCheckout;
-
-    useAttachEvent(element, 'checkout', checkoutCallback);
-
-    React.useLayoutEffect(() => {
-      if (
-        elementRef.current === null &&
-        domNode.current !== null &&
-        (elements || customCheckoutSdk)
-      ) {
-        let newElement: stripeJs.StripeElement | null = null;
-        if (customCheckoutSdk) {
-          newElement = customCheckoutSdk.createElement(type as any, options);
-        } else if (elements) {
-          newElement = elements.create(type as any, options);
-        }
-
-        if (type === 'cart' && setCart) {
-          // we know that elements.create return value must be of type StripeCartElement if type is 'cart',
-          // we need to cast because typescript is not able to infer which overloaded method is used based off param type
-          setCart((newElement as unknown) as stripeJs.StripeCartElement);
-        }
-
-        // Store element in a ref to ensure it's _immediately_ available in cleanup hooks in StrictMode
-        elementRef.current = newElement;
-        // Store element in state to facilitate event listener attachment
-        setElement(newElement);
-
-        if (newElement) {
-          newElement.mount(domNode.current);
-        }
-      }
+    
     }, [elements, customCheckoutSdk, options, setCart]);
 
     const prevOptions = usePrevious(options);
@@ -235,12 +127,7 @@ const createElementComponent = (
     onLoadError: PropTypes.func,
     onLoaderStart: PropTypes.func,
     onNetworksChange: PropTypes.func,
-    onCheckout: PropTypes.func,
-    onLineItemClick: PropTypes.func,
-    onConfirm: PropTypes.func,
-    onCancel: PropTypes.func,
-    onShippingAddressChange: PropTypes.func,
-    onShippingRateChange: PropTypes.func,
+
     options: PropTypes.object as any,
   };
 

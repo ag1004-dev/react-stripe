@@ -20,15 +20,8 @@ describe('createElementComponent', () => {
   let mockStripe: any;
   let mockElements: any;
   let mockElement: any;
-  let mockCartElementContext: any;
-  let mockCustomCheckoutSdk: any;
 
-  let simulateElementsEvents: Record<string, any[]>;
-  let simulateOn: any;
-  let simulateOff: any;
-  const simulateEvent = (event: string, ...args: any[]) => {
-    simulateElementsEvents[event].forEach((fn) => fn(...args));
-  };
+
 
   beforeEach(() => {
     mockStripe = mocks.mockStripe();
@@ -41,17 +34,6 @@ describe('createElementComponent', () => {
     mockCustomCheckoutSdk.createElement.mockReturnValue(mockElement);
     jest.spyOn(React, 'useLayoutEffect');
 
-    simulateElementsEvents = {};
-    simulateOn = jest.fn((event, fn) => {
-      simulateElementsEvents[event] = [
-        ...(simulateElementsEvents[event] || []),
-        fn,
-      ];
-    });
-    simulateOff = jest.fn((event, fn) => {
-      simulateElementsEvents[event] = simulateElementsEvents[event].filter(
-        (previouslyAddedFn) => previouslyAddedFn !== fn
-      );
     });
 
     mockElement.on = simulateOn;
@@ -721,145 +703,11 @@ describe('createElementComponent', () => {
         </Elements>
       );
 
-      simulateEvent('networkschange');
+
       expect(mockHandler2).toHaveBeenCalledWith();
       expect(mockHandler).not.toHaveBeenCalled();
     });
 
-    it('propagates the Element`s checkout event to the current onCheckout prop', () => {
-      const mockHandler = jest.fn();
-      const mockHandler2 = jest.fn();
-      const {rerender} = render(
-        <Elements stripe={mockStripe}>
-          <CartElement onCheckout={mockHandler} />
-        </Elements>
-      );
-      rerender(
-        <Elements stripe={mockStripe}>
-          <CartElement onCheckout={mockHandler2} />
-        </Elements>
-      );
-
-      const checkoutEventMock = Symbol('checkout');
-      simulateEvent('checkout', checkoutEventMock);
-      expect(mockHandler2).toHaveBeenCalledWith(checkoutEventMock);
-      expect(mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('propagates the Element`s lineitemclick event to the current onLineItemClick prop', () => {
-      const mockHandler = jest.fn();
-      const mockHandler2 = jest.fn();
-      const {rerender} = render(
-        <Elements stripe={mockStripe}>
-          <CartElement onLineItemClick={mockHandler} />
-        </Elements>
-      );
-      rerender(
-        <Elements stripe={mockStripe}>
-          <CartElement onLineItemClick={mockHandler2} />
-        </Elements>
-      );
-
-      const lineItemClickEventMock = Symbol('lineitemclick');
-      simulateEvent('lineitemclick', lineItemClickEventMock);
-      expect(mockHandler2).toHaveBeenCalledWith(lineItemClickEventMock);
-      expect(mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('propagates the Element`s confirm event to the current onConfirm prop', () => {
-      const mockHandler = jest.fn();
-      const mockHandler2 = jest.fn();
-      const {rerender} = render(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement onConfirm={mockHandler} />
-        </Elements>
-      );
-      rerender(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement onConfirm={mockHandler2} />
-        </Elements>
-      );
-
-      const confirmEventMock = Symbol('confirm');
-      simulateEvent('confirm', confirmEventMock);
-      expect(mockHandler2).toHaveBeenCalledWith(confirmEventMock);
-      expect(mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('propagates the Element`s cancel event to the current onCancel prop', () => {
-      const mockHandler = jest.fn();
-      const mockHandler2 = jest.fn();
-      const {rerender} = render(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement onConfirm={() => {}} onCancel={mockHandler} />
-        </Elements>
-      );
-      rerender(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement
-            onConfirm={() => {}}
-            onCancel={mockHandler2}
-          />
-        </Elements>
-      );
-
-      const cancelEventMock = Symbol('cancel');
-      simulateEvent('cancel', cancelEventMock);
-      expect(mockHandler2).toHaveBeenCalledWith(cancelEventMock);
-      expect(mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('propagates the Element`s shippingaddresschange event to the current onShippingAddressChange prop', () => {
-      const mockHandler = jest.fn();
-      const mockHandler2 = jest.fn();
-      const {rerender} = render(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement
-            onConfirm={() => {}}
-            onShippingAddressChange={mockHandler}
-          />
-        </Elements>
-      );
-      rerender(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement
-            onConfirm={() => {}}
-            onShippingAddressChange={mockHandler2}
-          />
-        </Elements>
-      );
-
-      const shippingAddressChangeEventMock = Symbol('shippingaddresschange');
-      simulateEvent('shippingaddresschange', shippingAddressChangeEventMock);
-      expect(mockHandler2).toHaveBeenCalledWith(shippingAddressChangeEventMock);
-      expect(mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('propagates the Element`s shippingratechange event to the current onShippingRateChange prop', () => {
-      const mockHandler = jest.fn();
-      const mockHandler2 = jest.fn();
-      const {rerender} = render(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement
-            onConfirm={() => {}}
-            onShippingRateChange={mockHandler}
-          />
-        </Elements>
-      );
-      rerender(
-        <Elements stripe={mockStripe}>
-          <ExpressCheckoutElement
-            onConfirm={() => {}}
-            onShippingRateChange={mockHandler2}
-          />
-        </Elements>
-      );
-
-      const shippingRateChangeEventMock = Symbol('shippingratechange');
-      simulateEvent('shippingratechange', shippingRateChangeEventMock);
-      expect(mockHandler2).toHaveBeenCalledWith(shippingRateChangeEventMock);
-      expect(mockHandler).not.toHaveBeenCalled();
-    });
 
     it('updates the Element when options change', () => {
       const {rerender} = render(
