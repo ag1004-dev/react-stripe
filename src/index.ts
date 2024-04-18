@@ -5,6 +5,7 @@ import {
   CardNumberElementComponent,
   CardExpiryElementComponent,
   CardCvcElementComponent,
+  ExpressCheckoutElementComponent,
   FpxBankElementComponent,
   IbanElementComponent,
   IdealBankElementComponent,
@@ -14,8 +15,11 @@ import {
   PaymentElementComponent,
   PaymentRequestButtonElementComponent,
   ShippingAddressElementComponent,
+  AddressElementComponent,
+  CartElementComponent,
   AffirmMessageElementComponent,
   AfterpayClearpayMessageElementComponent,
+  PaymentMethodMessagingElementComponent,
 } from './types';
 
 export * from './types';
@@ -23,6 +27,8 @@ export * from './types';
 export {
   useElements,
   useStripe,
+  useCartElement,
+  useCartElementState,
   Elements,
   ElementsConsumer,
 } from './components/Elements';
@@ -118,6 +124,17 @@ export const PaymentElement: PaymentElementComponent = createElementComponent(
 );
 
 /**
+ * Requires beta access:
+ * Contact [Stripe support](https://support.stripe.com/) for more information.
+ *
+ * @docs https://stripe.com/docs/stripe-js/react#element-components
+ */
+export const ExpressCheckoutElement: ExpressCheckoutElementComponent = createElementComponent(
+  'expressCheckout',
+  isServer
+);
+
+/**
  * @docs https://stripe.com/docs/stripe-js/react#element-components
  */
 export const PaymentRequestButtonElement: PaymentRequestButtonElementComponent = createElementComponent(
@@ -137,13 +154,40 @@ export const LinkAuthenticationElement: LinkAuthenticationElementComponent = cre
 );
 
 /**
- * Requires beta access:
- * Contact [Stripe support](https://support.stripe.com/) for more information.
+ * @docs https://stripe.com/docs/stripe-js/react#element-components
+ */
+export const AddressElement: AddressElementComponent = createElementComponent(
+  'address',
+  isServer
+);
+
+/**
+ * @deprecated
+ * Use `AddressElement` instead.
  *
  * @docs https://stripe.com/docs/stripe-js/react#element-components
  */
 export const ShippingAddressElement: ShippingAddressElementComponent = createElementComponent(
   'shippingAddress',
+  isServer
+);
+
+/**
+ * Requires beta access:
+ * Contact [Stripe support](https://support.stripe.com/) for more information.
+ *
+ * @docs https://stripe.com/docs/elements/cart-element
+ */
+export const CartElement: CartElementComponent = createElementComponent(
+  'cart',
+  isServer
+);
+
+/**
+ * @docs https://stripe.com/docs/stripe-js/react#element-components
+ */
+export const PaymentMethodMessagingElement: PaymentMethodMessagingElementComponent = createElementComponent(
+  'paymentMethodMessaging',
   isServer
 );
 

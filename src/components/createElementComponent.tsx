@@ -6,8 +6,11 @@ import React from 'react';
 
 import PropTypes from 'prop-types';
 
-import {useElementsContextWithUseCase} from './Elements';
-import {useCallbackReference} from '../utils/useCallbackReference';
+import {
+  useElementsContextWithUseCase,
+  useCartElementContextWithUseCase,
+} from './Elements';
+import {useAttachEvent} from '../utils/useAttachEvent';
 import {ElementProps} from '../types';
 import {usePrevious} from '../utils/usePrevious';
 import {
@@ -29,10 +32,9 @@ interface PrivateElementProps {
   onLoadError?: UnknownCallback;
   onLoaderStart?: UnknownCallback;
   onNetworksChange?: UnknownCallback;
+
   options?: UnknownOptions;
 }
-
-const noop = () => {};
 
 const capitalized = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -46,62 +48,18 @@ const createElementComponent = (
     id,
     className,
     options = {},
-    onBlur = noop,
-    onFocus = noop,
-    onReady = noop,
-    onChange = noop,
-    onEscape = noop,
-    onClick = noop,
-    onLoadError = noop,
-    onLoaderStart = noop,
-    onNetworksChange = noop,
+
   }) => {
     const {elements} = useElementsContextWithUseCase(`mounts <${displayName}>`);
+    const [element, setElement] = React.useState<stripeJs.StripeElement | null>(
+      null
+    );
     const elementRef = React.useRef<stripeJs.StripeElement | null>(null);
     const domNode = React.useRef<HTMLDivElement | null>(null);
 
-    const callOnReady = useCallbackReference(onReady);
-    const callOnBlur = useCallbackReference(onBlur);
-    const callOnFocus = useCallbackReference(onFocus);
-    const callOnClick = useCallbackReference(onClick);
-    const callOnChange = useCallbackReference(onChange);
-    const callOnEscape = useCallbackReference(onEscape);
-    const callOnLoadError = useCallbackReference(onLoadError);
-    const callOnLoaderStart = useCallbackReference(onLoaderStart);
-    const callOnNetworksChange = useCallbackReference(onNetworksChange);
 
-    React.useLayoutEffect(() => {
-      if (elementRef.current == null && elements && domNode.current != null) {
-        const element = elements.create(type as any, options);
-        elementRef.current = element;
-        element.mount(domNode.current);
-        element.on('ready', () => callOnReady(element));
-        element.on('change', callOnChange);
-        element.on('blur', callOnBlur);
-        element.on('focus', callOnFocus);
-        element.on('escape', callOnEscape);
-
-        // Users can pass an onLoadError prop on any Element component
-        // just as they could listen for the `loaderror` event on any Element,
-        // but only certain Elements will trigger the event.
-        (element as any).on('loaderror', callOnLoadError);
-
-        // Users can pass an onLoaderStart prop on any Element component
-        // just as they could listen for the `loaderstart` event on any Element,
-        // but only certain Elements will trigger the event.
-        (element as any).on('loaderstart', callOnLoaderStart);
-
-        // Users can pass an onNetworksChange prop on any Element component
-        // just as they could listen for the `networkschange` event on any Element,
-        // but only the Card and CardNumber Elements will trigger the event.
-        (element as any).on('networkschange', callOnNetworksChange);
-
-        // Users can pass an onClick prop on any Element component
-        // just as they could listen for the `click` event on any Element,
-        // but only the PaymentRequestButton will actually trigger the event.
-        (element as any).on('click', callOnClick);
       }
-    });
+    }, [elements, options, setCart]);
 
     const prevOptions = usePrevious(options);
     React.useEffect(() => {
@@ -120,9 +78,16 @@ const createElementComponent = (
 
     React.useLayoutEffect(() => {
       return () => {
-        if (elementRef.current) {
-          elementRef.current.destroy();
-          elementRef.current = null;
+        if (
+          elementRef.current &&
+          typeof elementRef.current.destroy === 'function'
+        ) {
+          try {
+            elementRef.current.destroy();
+            elementRef.current = null;
+          } catch (error) {
+            // Do nothing
+          }
         }
       };
     }, []);
@@ -134,6 +99,7 @@ const createElementComponent = (
   const ServerElement: FunctionComponent<PrivateElementProps> = (props) => {
     // Validate that we are in the right context by calling useElementsContextWithUseCase.
     useElementsContextWithUseCase(`mounts <${displayName}>`);
+    useCartElementContextWithUseCase(`mounts <${displayName}>`);
     const {id, className} = props;
     return <div id={id} className={className} />;
   };
@@ -147,10 +113,12 @@ const createElementComponent = (
     onBlur: PropTypes.func,
     onFocus: PropTypes.func,
     onReady: PropTypes.func,
+    onEscape: PropTypes.func,
     onClick: PropTypes.func,
     onLoadError: PropTypes.func,
     onLoaderStart: PropTypes.func,
     onNetworksChange: PropTypes.func,
+
     options: PropTypes.object as any,
   };
 
